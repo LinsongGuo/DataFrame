@@ -66,7 +66,8 @@ private:
     inline void calc_k_means_(const H &column_begin, size_type col_size)  {
 
         std::random_device                          rd;
-        std::mt19937                                gen(rd());
+        // std::mt19937                                gen(rd());
+        std::mt19937                                gen(369);
         std::uniform_int_distribution<size_type>    rd_gen(0, col_size - 1);
 
         // Pick centroids as random points from the col.
@@ -76,11 +77,17 @@ private:
         std::vector<size_type>  assignments(col_size, 0);
 
         for (size_type iter = 0; iter < iter_num_; ++iter) {
+// #ifdef CONCORD_UNROLL
+//             #pragma clang loop unroll_count(4) 
+// #endif
             // Find assignments.
             for (size_type point = 0; point < col_size; ++point) {
                 double      best_distance = std::numeric_limits<double>::max();
                 size_type   best_cluster = 0;
 
+#ifdef CONCORD_UNROLL
+                #pragma clang loop unroll_count(4) 
+#endif
                 for (size_type cluster = 0; cluster < K; ++cluster) {
                     const double    distance =
                         dfunc_(*(column_begin + point), result_[cluster]);
@@ -97,6 +104,9 @@ private:
             result_type             new_means { value_type() };
             std::array<double, K>   counts { 0.0 };
 
+#ifdef CONCORD_UNROLL  
+            #pragma clang loop unroll_count(4) 
+#endif
             for (size_type point = 0; point < col_size; ++point) {
                 const size_type cluster = assignments[point];
 
@@ -108,6 +118,9 @@ private:
             bool    done = true;
 
             // Divide sums by counts to get new centroids.
+#ifdef CONCORD_UNROLL
+            #pragma clang loop unroll_count(4) 
+#endif
             for (size_type cluster = 0; cluster < K; ++cluster) {
                 // Turn 0/0 into 0/1 to avoid zero division.
                 const double        count =

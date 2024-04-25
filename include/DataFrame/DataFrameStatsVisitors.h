@@ -1019,8 +1019,14 @@ public:
 
         result_.reserve(col_s);
 
+// #ifdef CONCORD_UNROLL
+//         #pragma clang loop unroll_count(0)
+// #endif
         for (size_type i = 0; i < roll_count_ - 1 && i < col_s; ++i)
             result_.push_back(std::numeric_limits<f_result_type>::quiet_NaN());
+#ifdef CONCORD_UNROLL
+        #pragma clang loop unroll_count(2)
+#endif
         for (size_type i = 0; i < col_s; ++i)  {
             if (i + roll_count_ <= col_s)  {
                 visitor_.pre();
@@ -1498,6 +1504,9 @@ struct CumSumVisitor {
         result_type result;
 
         result.reserve(col_s);
+#ifdef CONCORD_UNROLL
+        #pragma clang loop unroll_count(4)
+#endif
         for (size_type i = 0; i < col_s; ++i)  {
             const value_type    &value = *(column_begin + i);
 
@@ -1929,6 +1938,9 @@ struct  ExponentiallyWeightedMeanVisitor  {
 
         result[0] = *column_begin;
         if (! finite_adjust_)  {
+// #ifdef CONCORD_UNROLL
+//             #pragma clang loop unroll_count(0)
+// #endif
             for (size_type i = 1; i < col_s; ++i)
                 result[i] =
                     decay_ * *(column_begin + i) + decay_comp * result[i - 1];
@@ -1938,6 +1950,9 @@ struct  ExponentiallyWeightedMeanVisitor  {
             value_type  dc_p = 1;
             value_type  numerator = result[0];
 
+// #ifdef CONCORD_UNROLL
+//             #pragma clang loop unroll_count(0)
+// #endif
             for (size_type i = 1; i < col_s; ++i)  {
                 dc_p *= decay_comp;
                 denominator += dc_p;

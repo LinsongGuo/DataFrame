@@ -1520,6 +1520,9 @@ struct  RollingMidValueVisitor  {
         result_type result;
 
         result.reserve(col_s);
+#ifdef CONCORD_UNROLL
+        #pragma clang loop unroll_count(4)
+#endif
         for (size_type i = 0; i < roll_count_ - 1 && i < col_s; ++i)
             result.push_back(std::numeric_limits<T>::quiet_NaN());
 
@@ -1527,10 +1530,16 @@ struct  RollingMidValueVisitor  {
         value_type                  max_v = *high_begin;
         static constexpr value_type p5 { 0.5 };
 
+#ifdef CONCORD_UNROLL
+        #pragma clang loop unroll_count(2)
+#endif
         for (size_type i = 0; i < col_s; ++i)  {
             const size_type limit = i + roll_count_;
 
             if (limit <= col_s)  {
+                #ifdef CONCORD_UNROLL
+                #pragma clang loop unroll_count(4)
+                #endif
                 for (size_type j = i; j < limit; ++j)  {
                     if (*(low_begin + j) < min_v)
                         min_v = *(low_begin + j);
@@ -2185,6 +2194,9 @@ struct PercentPriceOSCIVisitor {
 
         result_type result = std::move(slow_roller.get_result());
 
+#ifdef CONCORD_UNROLL
+        #pragma clang loop unroll_count(4)
+#endif
         for (size_type i = 0; i < col_s; ++i)
             result[i] =
                 (T(100) * (fast_roller.get_result()[i] - result[i])) /
@@ -2198,12 +2210,18 @@ struct PercentPriceOSCIVisitor {
         signal_roller.post();
 
         histogram_.reserve(col_s);
+#ifdef CONCORD_UNROLL
+        #pragma clang loop unroll_count(4)
+#endif
         for (size_type i = 0; i < slow_; ++i)
             histogram_.push_back(std::numeric_limits<T>::quiet_NaN());
 
         const size_type new_col_s =
             std::min(col_s, signal_roller.get_result().size());
 
+#ifdef CONCORD_UNROLL
+        #pragma clang loop unroll_count(4)
+#endif
         for (size_type i = slow_; i < new_col_s; ++i)
             histogram_.push_back(result[i] - signal_roller.get_result()[i]);
 
@@ -2215,9 +2233,9 @@ struct PercentPriceOSCIVisitor {
     DEFINE_RESULT
 
     explicit
-    PercentPriceOSCIVisitor(size_type fast_period = 12,
-                            size_type slow_period = 26,
-                            size_type signal_line = 9)
+    PercentPriceOSCIVisitor(size_type fast_period = 12*2,
+                            size_type slow_period = 26*2,
+                            size_type signal_line = 9*2)
         : slow_(slow_period), fast_(fast_period), signal_(signal_line)  {  }
 
 private:
@@ -3524,6 +3542,9 @@ struct  AccumDistVisitor {
 
         result_type result (col_s, std::numeric_limits<T>::quiet_NaN());
 
+// #ifdef CONCORD_UNROLL
+//         #pragma clang loop unroll_count(0) 
+// #endif
         for (size_type i = 0; i < col_s; ++i)  {
             const value_type    co = *(close_begin + i) - *(open_begin + i);
             const value_type    hl = *(high_begin + i) - *(low_begin + i);
@@ -3803,6 +3824,9 @@ struct  DecayVisitor  {
             expo_ ? std::exp(-T(period_)) : (T(1) / T(period_));
 
         result[0] = *column_begin;
+#ifdef CONCORD_UNROLL
+        #pragma clang loop unroll_count(8) 
+#endif
         for (size_type i = 1; i < col_s; ++i)
             result[i] =
                 std::max({ *(column_begin + i),
