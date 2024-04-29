@@ -67,6 +67,7 @@ private:
 
         std::random_device                          rd;
         // std::mt19937                                gen(rd());
+        // std::mt19937                                gen(3);
         std::mt19937                                gen(369);
         std::uniform_int_distribution<size_type>    rd_gen(0, col_size - 1);
 
@@ -76,9 +77,12 @@ private:
 
         std::vector<size_type>  assignments(col_size, 0);
 
+// #ifdef CONCORD_UNROLL
+//         #pragma clang loop unroll_count(2) 
+// #endif
         for (size_type iter = 0; iter < iter_num_; ++iter) {
 // #ifdef CONCORD_UNROLL
-//             #pragma clang loop unroll_count(4) 
+//             #pragma clang loop unroll_count(2)
 // #endif
             // Find assignments.
             for (size_type point = 0; point < col_size; ++point) {

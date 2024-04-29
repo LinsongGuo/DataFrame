@@ -2233,9 +2233,9 @@ struct PercentPriceOSCIVisitor {
     DEFINE_RESULT
 
     explicit
-    PercentPriceOSCIVisitor(size_type fast_period = 12*2,
-                            size_type slow_period = 26*2,
-                            size_type signal_line = 9*2)
+    PercentPriceOSCIVisitor(size_type fast_period = 12,
+                            size_type slow_period = 26,
+                            size_type signal_line = 9)
         : slow_(slow_period), fast_(fast_period), signal_(signal_line)  {  }
 
 private:

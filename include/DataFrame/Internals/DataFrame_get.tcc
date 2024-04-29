@@ -72,9 +72,10 @@ template<typename I, typename  H>
 template<typename T>
 typename DataFrame<I, H>::template ColumnVecType<T> &
 DataFrame<I, H>::get_column (const char *name)  {
-
+    preempt_disable();
     auto    iter = column_tb_.find (name);
-
+    preempt_enable();
+    
     if (iter == column_tb_.end())  {
         char buffer [512];
 
